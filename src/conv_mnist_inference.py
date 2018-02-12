@@ -4,6 +4,7 @@ import PIL
 from PIL import Image
 
 import tensorflow as tf
+from datetime import datetime
 
 # mnist = input_data.read_data_sets("MNIST_data", one_hot=True)
 
@@ -84,7 +85,14 @@ accuracy = tf.reduce_mean(tf.cast(correct_prediction, tf.float32))
 sess.run(tf.global_variables_initializer())
 
 saver = tf.train.Saver()
-saver.restore(sess, "../model_simple.ckpt")
+
+
+# RESTORE & PREDICT - BEGIN
+# saver.restore(sess, "../model_simple.ckpt")
+
+saver.restore(sess, '../model_jerry.ckpt')
+saver = tf.train.import_meta_graph('../model_jerry.ckpt.meta')
+
 print("model restored.")
 
 result = sess.run(y_conv, feed_dict={x: img, keep_prob: 1.0})
@@ -93,3 +101,5 @@ print(result)
 print("Prediction is (output one-hot digit from 0 to 9):")
 print(sess.run(tf.argmax(result, 1)))
 # print("test accuracy %g"%sess.run(accuracy, feed_dict={x: mnist.test.images, y_: mnist.test.labels, keep_prob: 1.0}))
+
+# RESTORE & PREDICT - END
