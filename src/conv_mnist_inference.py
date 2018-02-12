@@ -89,7 +89,7 @@ saver = tf.train.Saver()
 
 # RESTORE & PREDICT - BEGIN
 # saver.restore(sess, "../model_simple.ckpt")
-
+# TEST
 saver.restore(sess, '../model_jerry.ckpt')
 saver = tf.train.import_meta_graph('../model_jerry.ckpt.meta')
 
