@@ -1,20 +1,13 @@
-from tensorflow.examples.tutorials.mnist import input_data
-from tensorflow.python.tools.inspect_checkpoint import print_tensors_in_checkpoint_file
+import tensorflow as tf
+saver = tf.train.import_meta_graph("/home/jerry3chang/Workspace/jerry_model/model_jerry.ckpt.meta")
+# '/home/jerry3chang/Workspace/jerry_model/model_jerry.ckpt.meta'
 from scipy import misc
 import PIL
 from PIL import Image
 
-import tensorflow as tf
-from datetime import datetime
-
-# mnist = input_data.read_data_sets("MNIST_data", one_hot=True)
-
-# pre-process data if necessary
-
 flags = tf.app.flags
 FLAGS = flags.FLAGS
 flags.DEFINE_string("image_path", "../num4_1.jpg", "Path to your input digit image.")
-
 
 img = Image.open(FLAGS.image_path)
 print("Orignial image size is: ")
@@ -24,8 +17,6 @@ img.save("../tmp_image.jpg")
 print("Resized image size is: ")
 print(img.size)
 
-import tensorflow as tf
-sess = tf.Session()
 
 x = tf.placeholder(tf.float32, shape=[None, 784])
 y_ = tf.placeholder(tf.float32, shape=[None, 10])
@@ -87,22 +78,13 @@ accuracy = tf.reduce_mean(tf.cast(correct_prediction, tf.float32))
 
 
 
-saver = tf.train.Saver()
-# RESTORE & PREDICT - BEGIN
-# saver.restore(sess, "../model_simple.ckpt")
-# TEST
-saver.restore(sess, "/home/jerry3chang/Workspace/jerry_model/model_jerry.ckpt")
-saver = tf.train.import_meta_graph('/home/jerry3chang/Workspace/jerry_model/model_jerry.ckpt.meta')
 
-print("model restored.")
+with tf.Session() as sess:
+    saver.restore(sess, "/home/jerry3chang/Workspace/jerry_model/model_jerry.ckpt")
+    print(sess.run(tf.get_default_graph().get_tensor_by_name("Variable:0")))
 
-print_tensors_in_checkpoint_file("/home/jerry3chang/Workspace/jerry_model/model_jerry.ckpt", None, False, True)
-
-result = sess.run(y_conv, feed_dict={x: img, keep_prob: 1.0})
-print("The output of the network is: ")
-print(result)
-print("Prediction is (output one-hot digit from 0 to 9):")
-print(sess.run(tf.argmax(result, 1)))
-# print("test accuracy %g"%sess.run(accuracy, feed_dict={x: mnist.test.images, y_: mnist.test.labels, keep_prob: 1.0}))
-
-# RESTORE & PREDICT - END
+    result = sess.run(y_conv, feed_dict={x: img, keep_prob: 1.0})
+    print("The output of the network is: ")
+    print(result)
+    print("Prediction is (output one-hot digit from 0 to 9):")
+    print(sess.run(tf.argmax(result, 1)))
