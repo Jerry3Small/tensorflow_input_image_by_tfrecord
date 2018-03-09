@@ -23,24 +23,15 @@ cross_entropy = tf.reduce_mean(-tf.reduce_sum(y_ * tf.log(y), reduction_indices=
 
 train_step = tf.train.GradientDescentOptimizer(0.5).minimize(cross_entropy)
 
-for i in range(1000):
-    # next_batch() will returns a tuple of two arrays
-    batch = mnist.train.next_batch(100)
-    trans = np.zeros((batch[0].shape[0], 3))
-    #print (batch[0].shape) # (100, 784)
-    #print (batch[1].shape) # (100, 10)
-    #print (batch[1][0,:])
-    #print (batch[1][1,:])
-    #print (len(batch[1][1,:])) # 10
-    #print (len(batch[1])) # 100
-    #print ("iteration: " + str(i))
+def transform_to_3(images, labels):
+    trans = np.zeros((images.shape[0], 3))
     c = 0
-    for e in batch[1]:
+    for e in labels:
         d = 0
         for f in e:
             if d < 2:
-                trans[c, d] = batch[1][c, d]
-            elif batch[1][c, 0] == 0 and batch[1][c, 1] == 0:
+                trans[c, d] = labels[c, d]
+            elif labels[c, 0] == 0 and labels[c, 1] == 0:
                 trans[c, 2] = 1
             else:
                 trans[c, 2] = 0
@@ -49,6 +40,11 @@ for i in range(1000):
             #print (e)
             #print (trans[c,:])
         c += 1
+    return trans
+
+for i in range(1000):
+    batch = mnist.train.next_batch(100)
+    trans = transform_to_3(batch[0], batch[1])
     train_step.run(feed_dict={x: batch[0], y_: trans})
 
 max_prediction = tf.argmax(y, 1)
@@ -112,9 +108,6 @@ b_fc2 = bias_variable([3])
 
 y_conv = tf.nn.softmax(tf.matmul(h_fc1_drop, W_fc2) + b_fc2)
 
-img = misc.imread("../tmp_image.jpg")
-img.shape=(1, 784)
-
 cross_entropy = tf.reduce_mean(-tf.reduce_sum(y_ * tf.log(y_conv), reduction_indices=[1]))
 train_step = tf.train.AdamOptimizer(1e-3).minimize(cross_entropy)
 correct_prediction = tf.equal(tf.argmax(y_conv,1), tf.argmax(y_,1))
@@ -125,30 +118,18 @@ saver = tf.train.Saver()
 
 
 
+
 # TRAIN - BEGIN
 with tf.device("/gpu:0"):
-    for i in range(5000): # 50000
+    for i in range(3000): # 50000
         batch = mnist.train.next_batch(50)
-
-        trans = np.zeros((batch[0].shape[0], 3))
-        c = 0
-        for e in batch[1]:
-            d = 0
-            for f in e:
-                if d < 2:
-                    trans[c, d] = batch[1][c, d]
-                elif batch[1][c, 0] == 0 and batch[1][c, 1] == 0:
-                    trans[c, 2] = 1
-                else:
-                    trans[c, 2] = 0
-                d += 1
-            c += 1
+        trans = transform_to_3(batch[0], batch[1])
 
         if i%500 == 0:
             train_accuracy = accuracy.eval(feed_dict={
                 x:batch[0], y_: trans, keep_prob: 1.0})
             print("step %d, training accuracy %g"%(i, train_accuracy))
-            save_path = saver.save(sess, "/home/jerry3chang/Desktop/tf_input_jpg/model_jerry.ckpt")
+            save_path = saver.save(sess, "/home/jerry3chang/Desktop/card_model/model_card.ckpt")
             print("model saved in file: %s" %save_path)
 
         train_step.run(feed_dict={x: batch[0], y_: trans, keep_prob: 0.5})
@@ -156,22 +137,10 @@ with tf.device("/gpu:0"):
 # print (mnist.test.images.shape) # (10000, 784)
 # print (mnist.test.labels.shape) # (10000, 10)
 
-trans = np.zeros((mnist.test.images.shape[0], 3))
-c = 0
-for e in mnist.test.labels:
-    d = 0
-    for f in e:
-        if d < 2:
-            trans[c, d] = mnist.test.labels[c, d]
-        elif mnist.test.labels[c, 0] == 0 and mnist.test.labels[c, 1] == 0:
-            trans[c, 2] = 1
-        else:
-            trans[c, 2] = 0
-        d += 1
-    c += 1
+trans = transform_to_3(mnist.test.images, mnist.test.labels)
 
 print("test accuracy %g"%accuracy.eval(feed_dict={x: mnist.test.images, y_: trans, keep_prob: 1.0}))
-save_path = saver.save(sess, "/home/jerry3chang/Desktop/tf_input_jpg/model_jerry.ckpt")
+save_path = saver.save(sess, "/home/jerry3chang/Desktop/card_model/model_card.ckpt")
 print("model saved in file: %s" %save_path)
 # TRAIN - END
 
@@ -183,7 +152,7 @@ FLAGS = flags.FLAGS
 
 # NOTE the input must be fixed to 28*28
 # predict num0_0.jpg will fail
-flags.DEFINE_string("image_path", "../num0_0.jpg", "Path to your input digit image.")
+flags.DEFINE_string("image_path", "../num4_1.jpg", "Path to your input digit image.")
 
 imgTarget = Image.open(FLAGS.image_path)
 print("Orignial image size is: ")

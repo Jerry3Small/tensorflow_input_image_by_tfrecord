@@ -8,6 +8,7 @@ from scipy import misc
 import PIL
 from PIL import Image
 
+
 x = tf.placeholder(tf.float32, shape=[None, 784])
 y_ = tf.placeholder(tf.float32, shape=[None, 10])
 
@@ -90,10 +91,6 @@ b_fc2 = bias_variable([10])
 
 y_conv = tf.nn.softmax(tf.matmul(h_fc1_drop, W_fc2) + b_fc2)
 
-img = misc.imread("../tmp_image.jpg")
-img.shape=(1, 784)
-
-
 cross_entropy = tf.reduce_mean(-tf.reduce_sum(y_ * tf.log(y_conv), reduction_indices=[1]))
 train_step = tf.train.AdamOptimizer(1e-3).minimize(cross_entropy)
 correct_prediction = tf.equal(tf.argmax(y_conv,1), tf.argmax(y_,1))
@@ -104,7 +101,7 @@ saver = tf.train.Saver()
 
 # TRAIN - BEGIN
 with tf.device("/gpu:0"):
-    for i in range(5000): # 50000
+    for i in range(3000): # 50000
         batch = mnist.train.next_batch(50)
         if i%500 == 0:
             train_accuracy = accuracy.eval(feed_dict={
