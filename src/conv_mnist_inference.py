@@ -10,7 +10,7 @@ from datetime import datetime
 # mnist = input_data.read_data_sets("MNIST_data", one_hot=True)
 
 # pre-process data if necessary
-
+# USAGE: python conv_mnist_inference.py --image_path ../num4_1.jpg
 flags = tf.app.flags
 FLAGS = flags.FLAGS
 flags.DEFINE_string("image_path", "../num4_1.jpg", "Path to your input digit image.")
@@ -24,7 +24,14 @@ img.save("../tmp_image.jpg")
 print("Resized image size is: ")
 print(img.size)
 
-import tensorflow as tf
+
+
+
+
+
+
+
+
 sess = tf.Session()
 
 x = tf.placeholder(tf.float32, shape=[None, 784])
@@ -89,14 +96,9 @@ accuracy = tf.reduce_mean(tf.cast(correct_prediction, tf.float32))
 
 saver = tf.train.Saver()
 # RESTORE & PREDICT - BEGIN
-# saver.restore(sess, "../model_simple.ckpt")
-# TEST
-saver.restore(sess, "/home/jerry3chang/Workspace/jerry_model/model_jerry.ckpt")
-saver = tf.train.import_meta_graph('/home/jerry3chang/Workspace/jerry_model/model_jerry.ckpt.meta')
+saver.restore(sess, "/home/jerry3chang/Desktop/tf_input_jpg/model_jerry.ckpt")
 
 print("model restored.")
-
-print_tensors_in_checkpoint_file("/home/jerry3chang/Workspace/jerry_model/model_jerry.ckpt", None, False, True)
 
 result = sess.run(y_conv, feed_dict={x: img, keep_prob: 1.0})
 print("The output of the network is: ")
