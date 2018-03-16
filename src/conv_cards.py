@@ -12,6 +12,7 @@ from scipy import misc
 import PIL
 from PIL import Image
 import numpy as np
+from conv_cards_utils import transform_to_3
 
 print (" * Initialize model ...")
 
@@ -89,25 +90,7 @@ mnist = read_data_sets("./jpg_to_mnist/cards_dataset", validation_size=38, one_h
 # print (type(mnist.test.images))
 # print (type(mnist.test.images[0]))
 
-# the generated mnist will still get one-hot of 10, needs to be transformed
-def transform_to_3(images, labels):
-    trans = np.zeros((images.shape[0], 3))
-    c = 0
-    for e in labels:
-        d = 0
-        for f in e:
-            if d < 2:
-                trans[c, d] = labels[c, d]
-            elif labels[c, 0] == 0 and labels[c, 1] == 0:
-                trans[c, 2] = 1
-            else:
-                trans[c, 2] = 0
-            d += 1
-        #if c <= 15:
-            #print (e)
-            #print (trans[c,:])
-        c += 1
-    return trans
+
 
 for i in range(1000):
     batch = mnist.train.next_batch(100)
@@ -187,7 +170,7 @@ with tf.device("/gpu:0"):
             train_accuracy = accuracy.eval(feed_dict={
                 x:batch[0], y_: trans, keep_prob: 1.0})
             print("step %d, training accuracy %g"%(i, train_accuracy))
-            save_path = saver.save(sess, "/home/jerry3chang/Desktop/card_model/model_card.ckpt")
+            save_path = saver.save(sess, "./cards_model/cards_model.ckpt")
             print("model saved in file: %s" %save_path)
 
         train_step.run(feed_dict={x: batch[0], y_: trans, keep_prob: 0.5})
@@ -198,7 +181,7 @@ with tf.device("/gpu:0"):
 trans = transform_to_3(mnist.test.images, mnist.test.labels)
 
 print("test accuracy %g"%accuracy.eval(feed_dict={x: mnist.test.images, y_: trans, keep_prob: 1.0}))
-save_path = saver.save(sess, "/home/jerry3chang/Desktop/card_model/model_card.ckpt")
+save_path = saver.save(sess, "./cards_model/cards_model.ckpt")
 print("model saved in file: %s" %save_path)
 # TRAIN - END
 
@@ -209,7 +192,7 @@ flags = tf.app.flags
 FLAGS = flags.FLAGS
 
 # NOTE the input must be fixed to 28*28
-flags.DEFINE_string("image_path", "../card0_0.jpg", "Path to your input digit image.")
+flags.DEFINE_string("image_path", "../card2_0.jpg", "Path to your input digit image.")
 
 imgTarget = Image.open(FLAGS.image_path)
 print(" * Orignial image size is: ")
@@ -225,7 +208,7 @@ imgTarget.shape=(1, 784)
 result = sess.run(y_conv, feed_dict={x: imgTarget, keep_prob: 1.0})
 print(" * The output of the network is: ")
 print(result)
-print(" * Prediction is (output one-hot digit from 0 to 9):")
+print(" * Prediction is (output one-hot digit from 0 to 2):")
 print(sess.run(tf.argmax(result, 1)))
 
 

@@ -1,5 +1,4 @@
 from tensorflow.examples.tutorials.mnist import input_data
-mnist = input_data.read_data_sets("MNIST_data", one_hot=True)
 
 from scipy import misc
 import PIL
@@ -7,27 +6,26 @@ from PIL import Image
 import numpy as np
 import tensorflow as tf
 
+from conv_cards_utils import transform_to_3
 
-
+# USAGE: python conv_mnist_inference.py --image_path ../card1_0.jpg
 
 flags = tf.app.flags
 FLAGS = flags.FLAGS
 # NOTE the input must be fixed to 28*28
-# predict num0_0.jpg will fail, don't know why ...
-flags.DEFINE_string("image_path", "../num0_0.jpg", "Path to your input digit image.")
+flags.DEFINE_string("image_path", "../card1_0.jpg", "Path to your input digit image.")
 
 imgTarget = Image.open(FLAGS.image_path)
-print("Orignial image size is: ")
+print(" * Orignial image size is: ")
 print(imgTarget.size)
 imgTarget = imgTarget.resize((28, 28), PIL.Image.ANTIALIAS)
 imgTarget.save("../tmp_image.jpg")
-print("Resized image size is: ")
+print(" * Resized image size is: ")
 print(imgTarget.size)
 
 import tensorflow as tf
 # Create session
 sess = tf.Session()
-
 
 # 1. Define variables and initialize them, then construct the model (shell)
 
@@ -38,26 +36,6 @@ W = tf.Variable(tf.zeros([784, 3]))               # weight variable
 b = tf.Variable(tf.zeros([3]))                    # bais
 
 # 2. Initialize variables, construct model and define the evaluation metrics
-
-def transform_to_3(images, labels):
-    trans = np.zeros((images.shape[0], 3))
-    c = 0
-    for e in batch[1]:
-        d = 0
-        for f in e:
-            if d < 2:
-                trans[c, d] = labels[c, d]
-            elif labels[c, 0] == 0 and labels[c, 1] == 0:
-                trans[c, 2] = 1
-            else:
-                trans[c, 2] = 0
-            d += 1
-        #if c <= 15:
-            #print (e)
-            #print (trans[c,:])
-        c += 1
-    return trans
-
 
 def weight_variable(shape):
     initial = tf.truncated_normal(shape, stddev=0.1)
@@ -116,22 +94,18 @@ accuracy = tf.reduce_mean(tf.cast(correct_prediction, tf.float32))
 # Note no initialize
 
 saver = tf.train.Saver()
-saver.restore(sess, "/home/jerry3chang/Desktop/card_model/model_card.ckpt")
+saver.restore(sess, "./cards_model/cards_model.ckpt")
 
 # print (mnist.test.images.shape) # (10000, 784)
 # print (mnist.test.labels.shape) # (10000, 10)
 
-
-
-
 # Process and predict
-
 
 imgTarget = misc.imread("../tmp_image.jpg")
 imgTarget.shape=(1, 784)
 
 result = sess.run(y_conv, feed_dict={x: imgTarget, keep_prob: 1.0})
-print("The output of the network is: ")
+print(" * The output of the network is: ")
 print(result)
-print("Prediction is (output one-hot digit from 0 to 9):")
+print(" * Prediction is (output one-hot digit from 0 to 2):")
 print(sess.run(tf.argmax(result, 1)))
