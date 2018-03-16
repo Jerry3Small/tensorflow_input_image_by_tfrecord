@@ -1,5 +1,9 @@
+from tensorflow.contrib.learn.python.learn.datasets import mnist as mnist_module
+from tensorflow.contrib.learn.python.learn.datasets import base
+from tensorflow.python.framework import dtypes
+from tensorflow.python.platform import gfile
 from tensorflow.examples.tutorials.mnist import input_data
-mnist = input_data.read_data_sets("MNIST_data", one_hot=True)
+
 
 import tensorflow as tf
 sess = tf.InteractiveSession()
@@ -8,6 +12,8 @@ from scipy import misc
 import PIL
 from PIL import Image
 import numpy as np
+
+print (" * Initialize model ...")
 
 x = tf.placeholder(tf.float32, shape=[None, 784])
 y_ = tf.placeholder(tf.float32, shape=[None, 3])
@@ -23,6 +29,67 @@ cross_entropy = tf.reduce_mean(-tf.reduce_sum(y_ * tf.log(y), reduction_indices=
 
 train_step = tf.train.GradientDescentOptimizer(0.5).minimize(cross_entropy)
 
+# copy from mnist
+def read_data_sets(train_dir,
+                   one_hot=False,
+                   dtype=dtypes.float32,
+                   reshape=True,
+                   validation_size=5000,
+                   seed=None,
+                   source_url=None): # omit url since we are using our own dataset
+    TRAIN_IMAGES = 'train-images-idx3-ubyte.gz'
+    TRAIN_LABELS = 'train-labels-idx1-ubyte.gz'
+    TEST_IMAGES = 'test-images-idx3-ubyte.gz'
+    TEST_LABELS = 'test-labels-idx1-ubyte.gz'
+
+    local_file = base.maybe_download(TRAIN_IMAGES, train_dir, None) # omit url
+    with gfile.Open(local_file, 'rb') as f:
+        train_images = mnist_module.extract_images(f)
+
+    local_file = base.maybe_download(TRAIN_LABELS, train_dir, None) # omit url
+    with gfile.Open(local_file, 'rb') as f:
+        train_labels = mnist_module.extract_labels(f, one_hot=one_hot)
+
+    local_file = base.maybe_download(TEST_IMAGES, train_dir, None) # omit url
+    with gfile.Open(local_file, 'rb') as f:
+        test_images = mnist_module.extract_images(f)
+
+    local_file = base.maybe_download(TEST_LABELS, train_dir, None) # omit url
+    with gfile.Open(local_file, 'rb') as f:
+        test_labels = mnist_module.extract_labels(f, one_hot=one_hot)
+
+    if not 0 <= validation_size <= len(train_images):
+        raise ValueError(
+            'Validation size should be between 0 and {}. Received: {}.'
+            .format(len(train_images), validation_size))
+
+    validation_images = train_images[:validation_size]
+    validation_labels = train_labels[:validation_size]
+    train_images = train_images[validation_size:]
+    train_labels = train_labels[validation_size:]
+
+    options = dict(dtype=dtype, reshape=reshape, seed=seed)
+
+    train = mnist_module.DataSet(train_images, train_labels, **options)
+    validation = mnist_module.DataSet(validation_images, validation_labels, **options)
+    test = mnist_module.DataSet(test_images, test_labels, **options)
+
+    return base.Datasets(train=train, validation=validation, test=test)
+
+print (" * Process dataset ...")
+mnist = read_data_sets("./jpg_to_mnist/cards_dataset", validation_size=38, one_hot=True)
+
+
+# print (type(mnist))                   # <class 'tensorflow.contrib.learn.python.learn.datasets.base.Datasets'>
+# print (mnist.train.num_examples)      # 55000 -> 657
+# print (mnist.validation.num_examples) # 5000  -> 38
+# print (mnist.test.num_examples)       # 10000 -> 77
+# print (mnist.train.labels)
+# print (type(mnist.test))
+# print (type(mnist.test.images))
+# print (type(mnist.test.images[0]))
+
+# the generated mnist will still get one-hot of 10, needs to be transformed
 def transform_to_3(images, labels):
     trans = np.zeros((images.shape[0], 3))
     c = 0
@@ -51,13 +118,6 @@ max_prediction = tf.argmax(y, 1)
 correct_prediction = tf.equal(tf.argmax(y, 1), tf.argmax(y_, 1))
 accuracy = tf.reduce_mean(tf.cast(correct_prediction, tf.float32))
 
-#print (type(mnist))                   # <class 'tensorflow.contrib.learn.python.learn.datasets.base.Datasets'>
-#print (mnist.train.num_examples)      # 55000
-#print (mnist.validation.num_examples) # 5000
-#print (mnist.test.num_examples)       # 10000
-#print (type(mnist.test))
-#print (type(mnist.test.images))
-#print (type(mnist.test.images[0]))
 
 #print(accuracy.eval(feed_dict={x: mnist.test.images, y_: mnist.test.labels}))
 #print(y.eval(feed_dict={x: [mnist.test.images[0], mnist.test.images[1]], y_: [mnist.test.labels[0], mnist.test.labels[1]]}))
@@ -117,11 +177,9 @@ saver = tf.train.Saver()
 
 
 
-
-
 # TRAIN - BEGIN
 with tf.device("/gpu:0"):
-    for i in range(3000): # 50000
+    for i in range(10000): # 50000
         batch = mnist.train.next_batch(50)
         trans = transform_to_3(batch[0], batch[1])
 
@@ -145,30 +203,29 @@ print("model saved in file: %s" %save_path)
 # TRAIN - END
 
 
-print("PROCESSING INPUT ...")
+print(" * Process input ...")
 
 flags = tf.app.flags
 FLAGS = flags.FLAGS
 
 # NOTE the input must be fixed to 28*28
-# predict num0_0.jpg will fail
-flags.DEFINE_string("image_path", "../num4_1.jpg", "Path to your input digit image.")
+flags.DEFINE_string("image_path", "../card0_0.jpg", "Path to your input digit image.")
 
 imgTarget = Image.open(FLAGS.image_path)
-print("Orignial image size is: ")
+print(" * Orignial image size is: ")
 print(imgTarget.size)
 imgTarget = imgTarget.resize((28, 28), PIL.Image.ANTIALIAS)
 imgTarget.save("../tmp_image.jpg")
-print("Resized image size is: ")
+print(" * Resized image size is: ")
 print(imgTarget.size)
 
 imgTarget = misc.imread("../tmp_image.jpg")
 imgTarget.shape=(1, 784)
 
 result = sess.run(y_conv, feed_dict={x: imgTarget, keep_prob: 1.0})
-print("The output of the network is: ")
+print(" * The output of the network is: ")
 print(result)
-print("Prediction is (output one-hot digit from 0 to 9):")
+print(" * Prediction is (output one-hot digit from 0 to 9):")
 print(sess.run(tf.argmax(result, 1)))
 
 

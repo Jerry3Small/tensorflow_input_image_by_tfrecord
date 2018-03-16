@@ -20,11 +20,30 @@ sess.run(tf.initialize_all_variables())
 y = tf.nn.softmax(tf.matmul(x, W) + b)
 
 cross_entropy = tf.reduce_mean(-tf.reduce_sum(y_ * tf.log(y), reduction_indices=[1]))
-
 train_step = tf.train.GradientDescentOptimizer(0.5).minimize(cross_entropy)
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 for i in range(1000):
     batch = mnist.train.next_batch(100)
+
     train_step.run(feed_dict={x: batch[0], y_: batch[1]})
 
 max_prediction = tf.argmax(y, 1)
@@ -101,8 +120,10 @@ saver = tf.train.Saver()
 
 # TRAIN - BEGIN
 with tf.device("/gpu:0"):
-    for i in range(3000): # 50000
+    for i in range(1000): # 50000
         batch = mnist.train.next_batch(50)
+
+
         if i%500 == 0:
             train_accuracy = accuracy.eval(feed_dict={
                 x:batch[0], y_: batch[1], keep_prob: 1.0})
@@ -111,6 +132,12 @@ with tf.device("/gpu:0"):
             print("model saved in file: %s" %save_path)
 
         train_step.run(feed_dict={x: batch[0], y_: batch[1], keep_prob: 0.5})
+
+
+
+
+
+
 print("test accuracy %g"%accuracy.eval(feed_dict={x: mnist.test.images, y_: mnist.test.labels, keep_prob: 1.0}))
 save_path = saver.save(sess, "/home/jerry3chang/Desktop/tf_input_jpg/model_jerry.ckpt")
 print("model saved in file: %s" %save_path)
