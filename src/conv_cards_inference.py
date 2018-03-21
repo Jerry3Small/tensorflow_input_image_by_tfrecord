@@ -10,19 +10,6 @@ from conv_cards_utils import transform_to_3
 
 # USAGE: python conv_mnist_inference.py --image_path ../card1_0.jpg
 
-flags = tf.app.flags
-FLAGS = flags.FLAGS
-# NOTE the input must be fixed to 28*28
-flags.DEFINE_string("image_path", "../card1_0.jpg", "Path to your input digit image.")
-
-imgTarget = Image.open(FLAGS.image_path)
-print(" * Orignial image size is: ")
-print(imgTarget.size)
-imgTarget = imgTarget.resize((28, 28), PIL.Image.ANTIALIAS)
-imgTarget.save("../tmp_image.jpg")
-print(" * Resized image size is: ")
-print(imgTarget.size)
-
 import tensorflow as tf
 # Create session
 sess = tf.Session()
@@ -81,11 +68,6 @@ b_fc2 = bias_variable([3])
 
 y_conv = tf.nn.softmax(tf.matmul(h_fc1_drop, W_fc2) + b_fc2)
 
-# Your own data
-
-img = misc.imread("../tmp_image.jpg")
-img.shape=(1, 784)
-
 cross_entropy = tf.reduce_mean(-tf.reduce_sum(y_ * tf.log(y_conv), reduction_indices=[1]))
 train_step = tf.train.AdamOptimizer(1e-3).minimize(cross_entropy)
 correct_prediction = tf.equal(tf.argmax(y_conv,1), tf.argmax(y_,1))
@@ -100,6 +82,19 @@ saver.restore(sess, "./cards_model/cards_model.ckpt")
 # print (mnist.test.labels.shape) # (10000, 10)
 
 # Process and predict
+
+flags = tf.app.flags
+FLAGS = flags.FLAGS
+# NOTE the input must be fixed to 28*28
+flags.DEFINE_string("image_path", "../card1_0.jpg", "Path to your input digit image.")
+
+imgTarget = Image.open(FLAGS.image_path).convert('L') # has to be grayscale
+print(" * Orignial image size is: ")
+print(imgTarget.size)
+imgTarget = imgTarget.resize((28, 28), PIL.Image.ANTIALIAS)
+imgTarget.save("../tmp_image.jpg")
+print(" * Resized image size is: ")
+print(imgTarget.size)
 
 imgTarget = misc.imread("../tmp_image.jpg")
 imgTarget.shape=(1, 784)

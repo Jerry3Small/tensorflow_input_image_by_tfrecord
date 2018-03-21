@@ -80,7 +80,6 @@ def read_data_sets(train_dir,
 print (" * Process dataset ...")
 mnist = read_data_sets("./jpg_to_mnist/cards_dataset", validation_size=38, one_hot=True)
 
-
 # print (type(mnist))                   # <class 'tensorflow.contrib.learn.python.learn.datasets.base.Datasets'>
 # print (mnist.train.num_examples)      # 55000 -> 657
 # print (mnist.validation.num_examples) # 5000  -> 38
@@ -89,8 +88,6 @@ mnist = read_data_sets("./jpg_to_mnist/cards_dataset", validation_size=38, one_h
 # print (type(mnist.test))
 # print (type(mnist.test.images))
 # print (type(mnist.test.images[0]))
-
-
 
 for i in range(1000):
     batch = mnist.train.next_batch(100)
@@ -162,7 +159,7 @@ saver = tf.train.Saver()
 
 # TRAIN - BEGIN
 with tf.device("/gpu:0"):
-    for i in range(10000): # 50000
+    for i in range(30000): # 50000
         batch = mnist.train.next_batch(50)
         trans = transform_to_3(batch[0], batch[1])
 
@@ -170,7 +167,7 @@ with tf.device("/gpu:0"):
             train_accuracy = accuracy.eval(feed_dict={
                 x:batch[0], y_: trans, keep_prob: 1.0})
             print("step %d, training accuracy %g"%(i, train_accuracy))
-            save_path = saver.save(sess, "./cards_model/cards_model.ckpt")
+            save_path = saver.save(sess, "./cards_model_30000/cards_model.ckpt")
             print("model saved in file: %s" %save_path)
 
         train_step.run(feed_dict={x: batch[0], y_: trans, keep_prob: 0.5})
@@ -181,7 +178,7 @@ with tf.device("/gpu:0"):
 trans = transform_to_3(mnist.test.images, mnist.test.labels)
 
 print("test accuracy %g"%accuracy.eval(feed_dict={x: mnist.test.images, y_: trans, keep_prob: 1.0}))
-save_path = saver.save(sess, "./cards_model/cards_model.ckpt")
+save_path = saver.save(sess, "./cards_model_30000/cards_model.ckpt")
 print("model saved in file: %s" %save_path)
 # TRAIN - END
 
@@ -210,5 +207,3 @@ print(" * The output of the network is: ")
 print(result)
 print(" * Prediction is (output one-hot digit from 0 to 2):")
 print(sess.run(tf.argmax(result, 1)))
-
-
