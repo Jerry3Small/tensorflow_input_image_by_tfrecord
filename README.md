@@ -15,7 +15,7 @@ Other scripts come from [yeephycho's repo.](http://yeephycho.github.io/2016/08/1
 
 ## Dataset
 
-The images come from [duel links site](https://www.vision.ee.ethz.ch/datasets_extra/food-101/). *Duel links* is a Collectable Card Game
+The images come from [duel links site](http://duellinks.gamea.co/c/yjdptqt2). *Duel links* is a Collectable Card Game
 released on mobile, inspired by Japan manga *Yu-Gi-Oh*.
 
 One of my goals is using CNN to recognize the card. Such as the types of the card (monster, spell or trap), the rarity ... eventually the specific name of it.

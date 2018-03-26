@@ -76,7 +76,7 @@ accuracy = tf.reduce_mean(tf.cast(correct_prediction, tf.float32))
 # Note no initialize
 
 saver = tf.train.Saver()
-saver.restore(sess, "./cards_model/cards_model.ckpt")
+saver.restore(sess, "./cards_model_30000/cards_model.ckpt")
 
 # print (mnist.test.images.shape) # (10000, 784)
 # print (mnist.test.labels.shape) # (10000, 10)
