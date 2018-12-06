@@ -1,7 +1,7 @@
 # Toy Project - Deck Recognition
 ## Intro.
 
-This project is a ordinary practice of mine for:
+This project is an ordinary practice of mine for:
 - Turn my own images into MNIST-like file
 - Using the structure of MNIST model to train and predict the card images
 - ... etc
